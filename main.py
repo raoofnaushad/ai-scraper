@@ -31,17 +31,20 @@ def scrape(url):
     with open(file_path, 'w', encoding='utf-8') as file:
         file.write(merged_content)
     
-    return None
+    return merged_content
 
 
 def scrape_and_extract(url, company_name):
     # Placeholder for the scraping logic
     contents = scrape(url)
+
+    ## here
     token_count = U.count_tokens(contents)
     print(f"Token Count: {token_count}")
     segmented_content = U.split_content_by_token_limit(contents)
     print(f"Segmented Content Size: {len(segmented_content)}")
 
+    return segmented_content[0]
 
 if __name__ == "__main__":
     url = "https://www.farpointhq.com/"
@@ -49,4 +52,3 @@ if __name__ == "__main__":
     # url = "https://www.evbex.com/"
 
     scrape_and_extract(url, company_name)
-

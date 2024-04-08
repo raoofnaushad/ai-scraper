@@ -51,33 +51,37 @@ def sort_urls_by_length(urls):
 def split_content_by_token_limit(content, limit=C.TOKEN_LIMIT):
     """
     Split content into segments, each having up to `limit` tokens, 
-    while preserving the original structure (e.g., new lines, paragraphs).
+    while preserving the original structure (e.g., new lines, paragraphs),
+    using actual token counts from the model's tokenizer.
     """
     # Split the content by lines to preserve structure
     lines = content.splitlines()
     segments = []
-    current_segment = []
+    current_segment = ""
     current_token_count = 0
     
     for line in lines:
-        # Count tokens in the current line
-        line_tokens = line.split()
-        line_token_count = len(line_tokens)
+        # Count tokens in the current line using the tokenizer
+        line_token_count = count_tokens(line)
+        
+        # Predict the number of tokens if we were to add the current line to the segment
+        # Adding 1 for potential newline tokens
+        predicted_token_count = count_tokens(current_segment + "\n" + line) if current_segment else line_token_count
         
         # Check if adding this line would exceed the limit
-        if current_token_count + line_token_count > limit:
-            # If so, start a new segment
-            segments.append("\n".join(current_segment))
-            current_segment = [line]  # Start new segment with current line
+        if predicted_token_count > limit:
+            # If so, finalize the current segment and start a new one
+            segments.append(current_segment)
+            current_segment = line
             current_token_count = line_token_count
         else:
             # Otherwise, add the line to the current segment
-            current_segment.append(line)
-            current_token_count += line_token_count
+            current_segment += ("\n" + line if current_segment else line)
+            current_token_count = predicted_token_count
             
     # Don't forget to add the last segment
     if current_segment:
-        segments.append("\n".join(current_segment))
+        segments.append(current_segment)
     
     return segments
 
